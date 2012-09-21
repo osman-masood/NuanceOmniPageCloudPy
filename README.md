@@ -19,14 +19,22 @@ See: http://stackoverflow.com/questions/9353444/how-to-use-install-gcc-on-mac-os
 This example uses your account name (MY_ACCOUNT_NAME) and account key (MY_ACCOUNT_KEY) to convert a .png file into a .docx file (job type ID 13).
 For more information on job type IDs, check out the table at the end of the API Reference Guide included with the SDK.
 
-<code>
-import NuanceOmniPageCloud
-</code>
-<code>
-n = NuanceOmniPageCloud.NuanceOmniPageCloud(account_name=MY_ACCOUNT_NAME, account_key=MY_ACCOUNT_KEY)
-</code>
-<code>
-n.convert('/Users/oamasood/stuff/profile.png', '/Users/oamasood/stuff/profile.docx', 13)
-</code>
+    import NuanceOmniPageCloud
+    n = NuanceOmniPageCloud.NuanceOmniPageCloud(account_name=MY_ACCOUNT_NAME, account_key=MY_ACCOUNT_KEY)
+    n.convert('/Users/oamasood/stuff/profile.png', '/Users/oamasood/stuff/profile.docx', 13)
 
 If you experience any issues, let me know...
+
+<h4>License</h4>
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
