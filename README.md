@@ -21,8 +21,13 @@ For more information on job type IDs, check out the table at the end of the API 
 
     import NuanceOmniPageCloud
     n = NuanceOmniPageCloud.NuanceOmniPageCloud(account_name=MY_ACCOUNT_NAME, account_key=MY_ACCOUNT_KEY)
-    n.convert('/Users/oamasood/stuff/profile.png', '/Users/oamasood/stuff/profile.docx', 13)
+    job_info_dict = n.convert('/Users/oamasood/stuff/profile.png', '/Users/oamasood/stuff/profile.docx', 13)
+    # Returns a dict with all the JobInfo parameters
 
+Now, let's cancel a job...
+
+    canceled_job_info_dict = n.cancel_job(job_info_dict['job_id'])
+    
 If you experience any issues, let me know...
 
 <h4>License</h4>
