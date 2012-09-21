@@ -66,6 +66,8 @@ class NuanceOmniPageCloud():
         self._http_header = None
         self._token_string = None
 
+
+
     def convert(self, input_file_path, output_file_path, job_type_id, title="", description="NuanceOmniPageCloud Python"):
         # $conversionServiceBase = "https://".RestTestClient::ServiceHost."/".RestTestClient::ServiceBase;
 
@@ -99,7 +101,7 @@ class NuanceOmniPageCloud():
         print "starting job progress monitoring"
         while True:
             job_info = self._get_job_info(job_id)
-            poll_interval_seconds = job_info.poll_interval.total_seconds()
+            poll_interval_seconds = job_info.poll_interval.seconds
             if job_info.state == JOB_STATE_COMPLETED:
                 print "job is completed!"
                 # get the urls of the result files
@@ -115,6 +117,18 @@ class NuanceOmniPageCloud():
                 time.sleep(poll_interval_seconds)
 
         print "finishing job progress monitoring"
+        return job_info.as_dict()
+
+    def cancel_job(self, job_id):
+        cancel_job_result = requests.get(
+            "https://%s/%s/%s" % (self._service_host, self._service_base, self._cancel_job_uri),
+            params=dict(jobId=job_id),
+            headers=self._http_header
+        ).text
+        tag = BeautifulStoneSoup(cancel_job_result).find('canceljobresult')
+        return JobInfo(soup_tag = tag).as_dict()
+
+
 
     def _create_job(self, job_type_id, title, description, metadata):
         print "creating job"
@@ -248,38 +262,20 @@ class NuanceOmniPageCloud():
         return wrap_access_token
 
 class JobInfo():
-    def __init__(self, job_id=None, completeness=None, state=None, estimated_work_time=None, poll_interval=None,
-                 started=None, ended=None, job_type_id=None, result_code=None, result_message=None,
-                 metadata=None, job_priority=None, soup_tag=None):
+    def __init__(self, soup_tag=None):
         if soup_tag:
-            self.job_id = soup_tag.find('jobid').text,
-            self.state = soup_tag.find('state').text,
-            self.completeness = soup_tag.find('completeness').text,
-            self.estimated_work_time = soup_tag.find('estimatedworktime').text,
-            self.poll_interval = self._serialized_timespan_to_timedelta(soup_tag.find('pollinterval').text),
-            self.started = soup_tag.find('started').text,
-            self.ended = soup_tag.find('ended').text,
-            self.job_type_id = soup_tag.find('jobtypeid').text,
-            self.result_code = soup_tag.find('resultcode').text,
-            self.result_message = soup_tag.find('resultmessage').text,
-            self.metadata = soup_tag.find('metadata').text,
+            self.job_id = soup_tag.find('jobid').text
+            self.state = soup_tag.find('state').text
+            self.completeness = soup_tag.find('completeness').text
+            self.estimated_work_time = soup_tag.find('estimatedworktime').text
+            self.poll_interval = self._serialized_timespan_to_timedelta(soup_tag.find('pollinterval').text)
+            self.started = soup_tag.find('started').text
+            self.ended = soup_tag.find('ended').text
+            self.job_type_id = soup_tag.find('jobtypeid').text
+            self.result_code = soup_tag.find('resultcode').text
+            self.result_message = soup_tag.find('resultmessage').text
+            self.metadata = soup_tag.find('metadata').text
             self.job_priority = soup_tag.find('jobpriority').text
-        else:
-            self.job_id = job_id # The identifier of the job.
-            self.completeness = completeness # Percentage of the job progress. It has meaning only if the State is Running.
-            self.state = state # The current state of the job.
-            self.estimated_work_time = estimated_work_time  # Estimated duration until the work is done.
-            self.poll_interval = self._serialized_timespan_to_timedelta(poll_interval)  # Estimated time span while the JobType won't be changed. Don't get progress information within this time interval.
-            self.started = started #  Start date of the job.
-            self.ended = ended # End date of the job.
-            self.job_type_id = job_type_id # The id of the conversion type.
-            self.result_code = result_code # Result code of the processing.
-            self.result_message = result_message # Result message of the processing.
-            self.metadata = metadata
-            self.job_priority = job_priority
-        print "end of init: pollinterval=%s" % self.poll_interval
-        print isinstance(self.poll_interval, tuple)
-        self.poll_interval = self.poll_interval[0]
 
     # Have to implement this due to Nuance's horribly serialized time string...i'm sorry, but really, what were they thinking
     def _serialized_timespan_to_timedelta(self, timespan):
@@ -297,9 +293,6 @@ class JobInfo():
         if result: minutes = float(result.group(1))
         result = re.search(r"([0-9.]*)S", timespan)  # seconds
         if result: seconds = float(result.group(1))
-#        seconds = float(seconds + 60 * minutes + 3600 * hours + 3600 * 24 * days + 30 * 3600 * 24 * months + 365 * 3600 * 24 * years)
-#        print "value of seconds at end of conversion %s" % seconds
-#        return seconds
         return datetime.timedelta(
             days = days + 30 * months + 365 * years,
             hours = hours,
@@ -307,10 +300,12 @@ class JobInfo():
             seconds = seconds
         )
 
+    def as_dict(self):
+        return self.__dict__
+
 class JobType():
     def __init__(self):
         self.source_format = None
         self.target_format = None
         self.job_type_id = None
         self.description = None
-
